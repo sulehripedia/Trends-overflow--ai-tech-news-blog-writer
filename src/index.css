@@ -1,0 +1,285 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Public+Sans:wght@400;600;800&display=swap');
+
+:root {
+  /* Neo-Brutalist Color Palette */
+  --neo-black: #000000;
+  --neo-white: #ffffff;
+  --neo-bg: #f0f0f0;
+  --neo-accent: #bcff00;
+  --neo-secondary: #00f0ff;
+  --neo-border: 3px;
+  --neo-shadow: 6px 6px 0px 0px #000000;
+  --neo-shadow-sm: 3px 3px 0px 0px #000000;
+  
+  /* Status Colors */
+  --stat-pending: #fbbf24;
+  --stat-generating: #3b82f6;
+  --stat-completed: #22c55e;
+  --stat-failed: #ef4444;
+}
+
+/* STRICT NO RADIUS POLICY */
+* {
+  border-radius: 0 !important;
+}
+
+body {
+  font-family: 'Public Sans', sans-serif;
+  background-color: var(--neo-bg);
+  color: var(--neo-black);
+  overflow: hidden;
+}
+
+/* Neo-Brutalist Typography */
+.neo-title {
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+/* Neo-Brutalist Box Styles */
+.neo-box {
+  border: var(--neo-border) solid var(--neo-black);
+  box-shadow: var(--neo-shadow);
+  background: var(--neo-white);
+}
+
+.neo-box-sm {
+  border: 2px solid var(--neo-black);
+  box-shadow: var(--neo-shadow-sm);
+  background: var(--neo-white);
+}
+
+/* Neo-Brutalist Button */
+.neo-btn {
+  border: var(--neo-border) solid var(--neo-black);
+  box-shadow: var(--neo-shadow-sm);
+  transition: all 0.1s;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-family: 'Space Mono', monospace;
+  cursor: pointer;
+}
+
+.neo-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px 0px #000000;
+}
+
+.neo-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Neo-Brutalist Input */
+.neo-input {
+  border: 2px solid var(--neo-black);
+  background: white;
+  font-family: 'Space Mono', monospace;
+  padding: 0.5rem 0.75rem;
+  width: 100%;
+}
+
+.neo-input:focus {
+  outline: none;
+  border-color: var(--neo-secondary);
+}
+
+/* Terminal Text */
+.terminal-text {
+  color: #00ff00;
+  font-family: 'Space Mono', monospace;
+  text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--neo-white);
+  border-left: 2px solid var(--neo-black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--neo-black);
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Article Content Styles */
+.article-content h2 {
+  font-size: 1.875rem;
+  font-weight: 800;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  border-bottom: 3px solid var(--neo-black);
+  padding-bottom: 0.5rem;
+  text-transform: uppercase;
+  font-family: 'Space Mono', monospace;
+}
+
+.article-content h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-family: 'Space Mono', monospace;
+}
+
+.article-content p {
+  margin-bottom: 1rem;
+  line-height: 1.7;
+}
+
+.article-content ul, .article-content ol {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+  padding-left: 1rem;
+}
+
+.article-content li {
+  margin-bottom: 0.5rem;
+}
+
+.article-content table {
+  width: 100%;
+  border: 3px solid var(--neo-black);
+  margin: 1.5rem 0;
+  border-collapse: collapse;
+}
+
+.article-content th, .article-content td {
+  padding: 0.75rem;
+  border: 2px solid var(--neo-black);
+  text-align: left;
+}
+
+.article-content th {
+  background: var(--neo-black);
+  color: var(--neo-white);
+  font-weight: 700;
+  font-family: 'Space Mono', monospace;
+  text-transform: uppercase;
+}
+
+.article-content code {
+  background: #1a1a1a;
+  color: #00ff00;
+  padding: 0.25rem 0.5rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.875rem;
+  border: 1px solid var(--neo-black);
+}
+
+.article-content pre {
+  background: #1a1a1a;
+  color: #00ff00;
+  padding: 1rem;
+  border: 3px solid var(--neo-black);
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  font-family: 'Space Mono', monospace;
+}
+
+.article-content pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+/* Console Styles */
+.console {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.console-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+/* Tab Button Styles */
+.tab-btn {
+  border: 2px solid var(--neo-black);
+  padding: 0.5rem 1rem;
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.tab-btn.active {
+  background: var(--neo-black);
+  color: var(--neo-white);
+}
+
+.tab-btn:not(.active):hover {
+  background: var(--neo-bg);
+}
+
+/* Progress Bar */
+.neo-progress {
+  width: 100%;
+  height: 1rem;
+  background: #333;
+  border: 2px solid var(--neo-white);
+  padding: 2px;
+}
+
+.neo-progress-bar {
+  height: 100%;
+  background: var(--neo-accent);
+  transition: width 0.3s ease;
+}

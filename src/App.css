@@ -1,0 +1,107 @@
+/* App-specific Neo-Brutalist Styles */
+
+/* Ensure full height layout */
+#root {
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Hover effect for neo-box elements */
+.neo-box:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 7px 7px 0px 0px #000000;
+}
+
+/* Smooth transitions */
+.neo-box,
+.neo-box-sm {
+  transition: all 0.15s ease;
+}
+
+/* Active state for buttons */
+.neo-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0px 0px 0px 0px #000000;
+}
+
+/* Focus states */
+.neo-input:focus {
+  box-shadow: 0 0 0 2px var(--neo-secondary);
+}
+
+/* Selection styling */
+::selection {
+  background: var(--neo-accent);
+  color: black;
+}
+
+/* Scrollbar for terminal */
+.console::-webkit-scrollbar {
+  width: 8px;
+}
+
+.console::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-left: 1px solid #333;
+}
+
+.console::-webkit-scrollbar-thumb {
+  background: #333;
+}
+
+.console::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}
+
+/* Ensure modals are on top */
+.modal-overlay {
+  z-index: 100;
+}
+
+/* Animation for status indicators */
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.1);
+  }
+}
+
+.status-dot {
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+/* Grid pattern for empty states */
+.empty-grid {
+  background-image: 
+    linear-gradient(#000 1px, transparent 1px),
+    linear-gradient(90deg, #000 1px, transparent 1px);
+  background-size: 20px 20px;
+  opacity: 0.1;
+}
+
+/* Ensure text doesn't overflow */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .w-64 {
+    width: 200px;
+  }
+  .w-80 {
+    width: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  aside {
+    display: none;
+  }
+}

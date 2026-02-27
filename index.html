@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Friends Overflow | Content Automation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        /* Light Mode - Beige & Forest Green */
+        --bg-main: #efede0;
+        --bg-sidebar: #1a2e24;
+        --bg-card: #ffffff;
+        --bg-input: #ffffff;
+        --text-main: #1c1917;
+        --text-muted: #57534e;
+        --text-inv: #efede0;
+        --border-main: #000000;
+        --accent-primary: #1a2e24;
+        --accent-secondary: #d97706; /* Amber */
+        --shadow-color: rgba(0,0,0,1);
+        --code-bg: #111827;
+        --code-text: #34d399;
+        --highlight-bg: #fef08a;
+      }
+
+      body.dark-mode {
+        /* Dark Mode - Cyber Terminal */
+        --bg-main: #050505;
+        --bg-sidebar: #000000;
+        --bg-card: #0a0a0a;
+        --bg-input: #000000;
+        --text-main: #e5e5e5;
+        --text-muted: #888888;
+        --text-inv: #000000;
+        --border-main: #333333;
+        --accent-primary: #4ade80; /* Neon Green */
+        --accent-secondary: #facc15; /* Neon Yellow */
+        --shadow-color: #1a2e24; /* Deep green shadow */
+        --code-bg: #000000;
+        --code-text: #4ade80;
+        --highlight-bg: #1a2e24;
+      }
+
+      /* STRICT NO RADIUS POLICY */
+      * {
+        border-radius: 0 !important;
+      }
+
+      body { 
+        font-family: 'Space Grotesk', sans-serif; 
+        background-color: var(--bg-main);
+        color: var(--text-main);
+        transition: background-color 0.2s ease, color 0.2s ease;
+        /* Optional: Subtle grain or scanline if desired, keeping it clean for now */
+      }
+
+      /* Article Content Styles */
+      .article-content h2 { 
+        font-size: 1.75rem; 
+        font-weight: 800; 
+        margin-top: 2.5rem; 
+        margin-bottom: 1.25rem; 
+        border-bottom: 3px solid var(--border-main); 
+        padding-bottom: 0.5rem;
+        letter-spacing: -0.03em;
+        text-transform: uppercase;
+      }
+      .article-content h3 { 
+        font-size: 1.4rem; 
+        font-weight: 700; 
+        margin-top: 1.75rem; 
+        margin-bottom: 0.75rem; 
+        color: var(--text-main);
+        text-decoration: underline;
+        text-decoration-color: var(--accent-primary);
+        text-decoration-thickness: 2px;
+      }
+      .article-content p { margin-bottom: 1.25rem; line-height: 1.6; font-size: 1.05rem; font-weight: 500; }
+      .article-content ul, .article-content ol { 
+        margin-left: 1.5rem; 
+        margin-bottom: 1.5rem; 
+        padding-left: 1rem;
+        border-left: 4px solid var(--accent-primary);
+        background: var(--bg-card);
+      }
+      .article-content li { margin-bottom: 0.5rem; padding: 0.5rem; }
+      
+      /* Internal Link Suggestions in content */
+      .internal-link-suggestion {
+        display: inline-block;
+        background-color: var(--highlight-bg);
+        padding: 2px 8px;
+        border: 2px solid var(--border-main);
+        text-decoration: none;
+        color: var(--text-main);
+        font-weight: 700;
+        font-size: 0.9em;
+        box-shadow: 2px 2px 0 0 var(--shadow-color);
+        transition: transform 0.1s;
+      }
+      .internal-link-suggestion:hover {
+        transform: translate(-1px, -1px);
+        box-shadow: 3px 3px 0 0 var(--shadow-color);
+      }
+
+      /* Table Styles */
+      .article-content table { 
+        width: 100%; 
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 2.5rem 0; 
+        border: 2px solid var(--border-main); 
+        font-size: 0.95rem; 
+        box-shadow: 6px 6px 0px 0px var(--shadow-color);
+        background: var(--bg-card);
+      }
+      .article-content th { 
+        background-color: var(--accent-primary); 
+        color: var(--text-inv); 
+        padding: 1rem; 
+        text-align: left; 
+        text-transform: uppercase; 
+        font-family: 'Space Mono', monospace;
+        font-size: 0.8rem;
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid var(--border-main);
+        font-weight: 700;
+      }
+      .article-content td { 
+        border-bottom: 1px solid var(--border-main); 
+        border-right: 1px solid var(--border-main); 
+        padding: 1rem; 
+        font-weight: 500;
+      }
+      .article-content td:last-child { border-right: none; }
+      .article-content tr:last-child td { border-bottom: none; }
+      .article-content tr:nth-child(even) { background-color: rgba(128,128,128,0.05); }
+
+      /* AI Image Placeholder */
+      .ai-image-placeholder {
+        background-color: var(--bg-main);
+        border: 2px solid var(--border-main);
+        padding: 3rem 2rem;
+        margin: 3rem 0;
+        text-align: center;
+        font-family: 'Space Mono', monospace;
+        color: var(--text-muted);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 4px 4px 0 0 var(--shadow-color);
+      }
+      .ai-image-placeholder::before {
+        content: "VISUAL_ASSET_REQ";
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: var(--text-main);
+        color: var(--bg-main);
+        padding: 0.25rem 0.5rem;
+        font-size: 0.7rem;
+        font-weight: bold;
+      }
+
+      /* Scrollbar */
+      ::-webkit-scrollbar { width: 14px; }
+      ::-webkit-scrollbar-track { background: var(--bg-main); border-left: 2px solid var(--border-main); }
+      ::-webkit-scrollbar-thumb { background: var(--accent-primary); border: 2px solid var(--border-main); }
+      ::-webkit-scrollbar-thumb:hover { background: var(--text-main); }
+      
+      .retro-shadow {
+        box-shadow: 5px 5px 0px 0px var(--shadow-color);
+      }
+      .retro-shadow-sm {
+        box-shadow: 3px 3px 0px 0px var(--shadow-color);
+      }
+      .retro-shadow-hover:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: 7px 7px 0px 0px var(--shadow-color);
+      }
+      
+      /* Utility for border colors in tailwind arbitrary values */
+      .border-theme { border-color: var(--border-main); }
+      .bg-theme-card { background-color: var(--bg-card); }
+      .text-theme-main { color: var(--text-main); }
+
+      /* Animations */
+      @keyframes blink { 50% { opacity: 0; } }
+      .blink { animation: blink 1s step-end infinite; }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
+    "@google/genai": "https://esm.sh/@google/genai@^1.40.0"
+  }
+}
+</script>
+</head>
+  <body class="antialiased selection:bg-green-300 selection:text-black">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
