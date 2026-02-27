@@ -1,6 +1,6 @@
 import React from 'react';
 import type { BlogPost } from '../types';
-import { X, Globe, Image as ImageIcon, Activity, CheckCircle, BarChart3 } from 'lucide-react';
+import { X, Globe, Activity, CheckCircle, BarChart3, Clock, Hash } from 'lucide-react';
 
 interface ArticleViewProps {
   post: BlogPost;
@@ -11,212 +11,222 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ post, onClose }) => {
   const [activeTab, setActiveTab] = React.useState<'preview' | 'json' | 'meta' | 'audit'>('preview');
 
   const getScoreColor = (score: number) => {
-    if (score >= 90) return 'text-green-600 border-green-600';
-    if (score >= 70) return 'text-yellow-600 border-yellow-600';
-    return 'text-red-600 border-red-600';
+    if (score >= 90) return 'bg-[var(--neo-accent)] text-black border-black';
+    if (score >= 75) return 'bg-yellow-300 text-black border-black';
+    return 'bg-red-400 text-white border-black';
   };
+
+  const wordCount = React.useMemo(() => {
+    if (!post.content_html) return 0;
+    return post.content_html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().split(' ').length;
+  }, [post.content_html]);
+
+  const readTime = Math.ceil(wordCount / 220);
 
   return (
     <div className="modal-overlay">
-      <div className="w-full max-w-6xl h-[90vh] flex flex-col neo-box">
-        
+      <div className="w-full max-w-6xl h-[92vh] flex flex-col neo-box">
+
         {/* Header */}
-        <div className="h-16 border-b-[3px] border-black flex items-center justify-between px-6 shrink-0 bg-white">
-          <div className="flex items-center gap-4 overflow-hidden">
-            <button 
+        <div className="h-14 border-b-[3px] border-black flex items-center justify-between px-4 shrink-0 bg-white">
+          <div className="flex items-center gap-3 overflow-hidden flex-1">
+            <button
               onClick={onClose}
-              className="p-2 border-2 border-black hover:bg-red-500 hover:text-white transition-colors"
+              className="p-2 border-2 border-black hover:bg-red-500 hover:text-white transition-colors flex-shrink-0"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
-            <h2 className="neo-title truncate text-lg uppercase">{post.title}</h2>
+            <h2 className="neo-title truncate text-sm uppercase">{post.title}</h2>
           </div>
-          
-          <div className="flex gap-0 overflow-x-auto">
-            {['preview', 'audit', 'meta', 'json'].map((tab, idx) => (
+
+          <div className="flex gap-0 flex-shrink-0">
+            {(['preview', 'audit', 'meta', 'json'] as const).map((tab, idx) => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab as any)}
-                className={`px-4 py-2 text-xs neo-title uppercase border-2 border-black transition-all whitespace-nowrap ${
-                  activeTab === tab 
-                    ? 'bg-black text-white' 
-                    : 'bg-white text-black hover:bg-gray-100'
+                onClick={() => setActiveTab(tab)}
+                className={`px-3 py-2 text-[10px] neo-title uppercase border-2 border-black transition-all whitespace-nowrap ${
+                  activeTab === tab ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100'
                 } ${idx > 0 ? '-ml-[2px]' : ''}`}
               >
-                {tab === 'meta' ? 'META_DATA' : tab === 'audit' ? 'SEO_REPORT' : tab.toUpperCase()}
+                {tab === 'meta' ? 'META' : tab === 'audit' ? 'SEO' : tab.toUpperCase()}
               </button>
             ))}
           </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-8 bg-[var(--neo-bg)]">
-          <div className="max-w-4xl mx-auto">
-            
-            {activeTab === 'preview' && (
-              <div className="neo-box p-8 bg-white">
-                {/* Header Section */}
-                <div className="mb-8 border-b-[3px] border-black pb-6">
-                  <h1 className="neo-title text-3xl mb-4 uppercase">{post.title}</h1>
-                  <div className="flex flex-wrap gap-2 mb-6">
-                    {post.tags?.map(tag => (
-                      <span key={tag} className="text-xs neo-title px-2 py-1 border-2 border-black">
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
+        <div className="flex-1 overflow-y-auto bg-[var(--neo-bg)]">
 
-                  {/* Generated Image Display */}
-                  {post.featured_image_base64 ? (
-                    <div className="w-full mb-8 border-[3px] border-black">
-                      <img 
-                        src={post.featured_image_base64} 
-                        alt={post.featured_image_prompt}
-                        className="w-full h-auto object-cover max-h-[400px]"
-                      />
-                      <p className="text-xs neo-title p-2 border-t-[3px] border-black bg-[var(--neo-bg)]">
-                        Generated by Gemini 2.5 Flash Image
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="w-full h-48 border-[3px] border-dashed border-black flex items-center justify-center bg-gray-50 mb-8">
-                      <p className="neo-title text-sm text-gray-400">Image Generation Pending / Failed</p>
-                    </div>
-                  )}
+          {/* PREVIEW TAB */}
+          {activeTab === 'preview' && (
+            <div className="max-w-4xl mx-auto py-8 px-4">
+              {/* Article meta bar */}
+              <div className="neo-box-sm p-3 mb-6 bg-white flex flex-wrap items-center gap-4 text-xs">
+                <span className={`neo-title px-3 py-1 border-2 border-black ${getScoreColor(post.seo_report?.score || 0)}`}>
+                  SEO: {post.seo_report?.score || 0}/100
+                </span>
+                <span className="flex items-center gap-1 text-gray-600">
+                  <Clock className="w-3 h-3" />
+                  {readTime} min read
+                </span>
+                <span className="flex items-center gap-1 text-gray-600">
+                  <BarChart3 className="w-3 h-3" />
+                  {wordCount.toLocaleString()} words
+                </span>
+                <div className="flex flex-wrap gap-1 ml-auto">
+                  {post.tags?.slice(0, 4).map(tag => (
+                    <span key={tag} className="text-[10px] neo-title px-2 py-0.5 border border-black">
+                      #{tag}
+                    </span>
+                  ))}
                 </div>
+              </div>
 
-                <div 
+              {/* Article Content */}
+              <div className="neo-box bg-white p-8 md:p-12">
+                <div
                   className="article-content"
-                  dangerouslySetInnerHTML={{ __html: post.content_html }} 
+                  dangerouslySetInnerHTML={{ __html: post.content_html }}
                 />
               </div>
-            )}
+            </div>
+          )}
 
-            {activeTab === 'audit' && post.seo_report && (
-              <div className="space-y-6">
-                {/* Scorecard */}
-                <div className="neo-box p-6 bg-white flex flex-col md:flex-row items-center justify-between gap-8">
-                  <div className="text-center md:text-left">
-                    <h3 className="neo-title text-2xl uppercase mb-2">SEO Performance Audit</h3>
-                    <p className="neo-title text-xs text-gray-500">Generated by Gemini 2.0 Flash Analysis</p>
-                  </div>
-                  
-                  <div className="flex items-center gap-8">
-                    <div className="flex flex-col items-center">
-                      <div className={`w-24 h-24 border-[6px] flex items-center justify-center text-3xl neo-title ${getScoreColor(post.seo_report.score)}`}>
-                        {post.seo_report.score}
-                      </div>
-                      <span className="neo-title text-[10px] uppercase mt-2 text-gray-500">Overall Score</span>
-                    </div>
-                    
-                    <div className="h-16 w-[3px] bg-black"></div>
-
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                      <div>
-                        <p className="neo-title text-[10px] uppercase mb-1 text-gray-500">Readability</p>
-                        <p className="neo-title text-lg">{post.seo_report.readability_level}</p>
-                      </div>
-                      <div>
-                        <p className="neo-title text-[10px] uppercase mb-1 text-gray-500">Density</p>
-                        <p className="neo-title text-lg">{post.seo_report.keyword_density}</p>
-                      </div>
-                    </div>
-                  </div>
+          {/* SEO AUDIT TAB */}
+          {activeTab === 'audit' && (
+            <div className="max-w-3xl mx-auto py-8 px-4 space-y-6">
+              {/* Score Card */}
+              <div className="neo-box p-6 bg-white flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
+                  <h3 className="neo-title text-xl uppercase mb-1">SEO Performance Report</h3>
+                  <p className="text-xs text-gray-500 neo-title">Generated by Gemini AI Analysis</p>
                 </div>
-
-                {/* Optimization Log */}
-                <div className="neo-box p-6 bg-white">
-                  <h3 className="neo-title text-lg mb-4 flex items-center gap-2 border-b-[3px] border-black pb-2 uppercase">
-                    <Activity className="w-5 h-5" /> Optimization Actions
-                  </h3>
+                <div className="flex items-center gap-8">
+                  <div className="text-center">
+                    <div className={`w-24 h-24 border-[5px] border-black flex items-center justify-center text-3xl neo-title ${getScoreColor(post.seo_report?.score || 0)}`}>
+                      {post.seo_report?.score || 0}
+                    </div>
+                    <span className="neo-title text-[10px] mt-2 block text-gray-500">OVERALL SCORE</span>
+                  </div>
                   <div className="space-y-3">
-                    {post.seo_report.optimization_log?.map((log, idx) => (
-                      <div key={idx} className="flex items-start gap-3">
-                        <CheckCircle className="w-5 h-5 shrink-0 mt-0.5 text-green-600" />
-                        <p className="text-sm">{log}</p>
-                      </div>
+                    <div>
+                      <p className="neo-title text-[9px] text-gray-500">READABILITY</p>
+                      <p className="neo-title text-sm">{post.seo_report?.readability_level || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="neo-title text-[9px] text-gray-500">KW DENSITY</p>
+                      <p className="neo-title text-sm">{post.seo_report?.keyword_density || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="neo-title text-[9px] text-gray-500">WORD COUNT</p>
+                      <p className="neo-title text-sm">{wordCount.toLocaleString()}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Optimization Log */}
+              <div className="neo-box p-6 bg-white">
+                <h3 className="neo-title text-sm uppercase mb-4 border-b-[3px] border-black pb-2 flex items-center gap-2">
+                  <Activity className="w-4 h-4" /> Optimization Actions
+                </h3>
+                <div className="space-y-2">
+                  {post.seo_report?.optimization_log?.map((log, i) => (
+                    <div key={i} className="flex items-start gap-3 py-2 border-b border-gray-100">
+                      <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-sm">{log}</p>
+                    </div>
+                  )) || <p className="text-sm text-gray-500">No optimization data available</p>}
+                </div>
+              </div>
+
+              {/* Keywords */}
+              <div className="neo-box p-6 bg-white">
+                <h3 className="neo-title text-sm uppercase mb-4 border-b-[3px] border-black pb-2 flex items-center gap-2">
+                  <Hash className="w-4 h-4" /> Keyword Strategy
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <p className="neo-title text-[9px] text-gray-500 mb-2">PRIMARY KEYWORD</p>
+                    <span className="neo-title text-sm px-3 py-1.5 border-2 border-black bg-[var(--neo-accent)] inline-block">
+                      {post.meta?.primary_keyword || 'N/A'}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="neo-title text-[9px] text-gray-500 mb-2">SECONDARY KEYWORDS</p>
+                    <div className="flex flex-wrap gap-2">
+                      {post.meta?.secondary_keywords?.map(kw => (
+                        <span key={kw} className="px-2 py-1 border-2 border-black text-xs neo-title bg-gray-50">{kw}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="neo-title text-[9px] text-gray-500 mb-2">TAGS</p>
+                    <div className="flex flex-wrap gap-2">
+                      {post.tags?.map(tag => (
+                        <span key={tag} className="px-2 py-1 border-2 border-black text-xs neo-title bg-black text-white">#{tag}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* META TAB */}
+          {activeTab === 'meta' && (
+            <div className="max-w-3xl mx-auto py-8 px-4 space-y-6">
+              <div className="neo-box p-6 bg-white">
+                <h3 className="neo-title text-sm uppercase mb-5 border-b-[3px] border-black pb-2 flex items-center gap-2">
+                  <Globe className="w-4 h-4" /> SEO Metadata
+                </h3>
+                <div className="space-y-5">
+                  <div>
+                    <label className="neo-title text-[9px] text-gray-500 block mb-1">META TITLE ({post.meta?.meta_title?.length || 0} chars)</label>
+                    <p className="text-lg neo-title border-l-4 border-[var(--neo-accent)] pl-3">{post.meta?.meta_title || post.title}</p>
+                  </div>
+                  <div>
+                    <label className="neo-title text-[9px] text-gray-500 block mb-1">META DESCRIPTION ({post.meta?.meta_description?.length || 0} chars)</label>
+                    <p className="text-sm leading-relaxed border border-gray-200 p-3 bg-gray-50">{post.meta?.meta_description || 'No description'}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="neo-title text-[9px] text-gray-500 block mb-1">URL SLUG</label>
+                      <p className="text-sm neo-title border-2 border-black p-2 bg-gray-50 truncate">/{post.slug}</p>
+                    </div>
+                    <div>
+                      <label className="neo-title text-[9px] text-gray-500 block mb-1">CREATED</label>
+                      <p className="text-sm neo-title border-2 border-black p-2 bg-gray-50">
+                        {post.createdAt ? new Date(post.createdAt).toLocaleDateString() : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {post.sources && post.sources.length > 0 && (
+                <div className="neo-box p-6 bg-white">
+                  <h3 className="neo-title text-sm uppercase mb-4 border-b-[3px] border-black pb-2">Sources</h3>
+                  <ul className="space-y-2">
+                    {post.sources.map((src, i) => (
+                      <li key={i} className="text-xs text-blue-700 border-b border-gray-100 pb-2 truncate">
+                        <a href={src} target="_blank" rel="noopener noreferrer">{src}</a>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </div>
+              )}
+            </div>
+          )}
 
-                {/* Tags & Clusters */}
-                <div className="neo-box p-6 bg-white">
-                  <h3 className="neo-title text-lg mb-4 flex items-center gap-2 border-b-[3px] border-black pb-2 uppercase">
-                    <BarChart3 className="w-5 h-5" /> Semantic Targeting
-                  </h3>
-                  <div className="space-y-4">
-                    <div>
-                      <p className="neo-title text-[10px] uppercase mb-2 text-gray-500">Primary Entity</p>
-                      <div className="inline-block border-2 border-black px-3 py-1 neo-title bg-[var(--neo-accent)]">
-                        {post.meta.primary_keyword}
-                      </div>
-                    </div>
-                    <div>
-                      <p className="neo-title text-[10px] uppercase mb-2 text-gray-500">Secondary Keywords & Tags</p>
-                      <div className="flex flex-wrap gap-2">
-                        {post.meta.secondary_keywords?.map(kw => (
-                          <span key={kw} className="px-2 py-1 border-2 border-black text-xs neo-title">{kw}</span>
-                        ))}
-                        {post.tags?.map(tag => (
-                          <span key={tag} className="px-2 py-1 border-2 border-black text-xs neo-title bg-black text-white">#{tag}</span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+          {/* JSON TAB */}
+          {activeTab === 'json' && (
+            <div className="p-4">
+              <div className="neo-box p-4 font-mono text-xs overflow-x-auto bg-black text-green-400 max-w-full">
+                <pre className="whitespace-pre-wrap break-all">{JSON.stringify(post, null, 2)}</pre>
               </div>
-            )}
-
-            {activeTab === 'meta' && (
-              <div className="space-y-6">
-                <div className="neo-box p-6 bg-white">
-                  <h3 className="neo-title text-lg mb-4 flex items-center gap-2 border-b-[3px] border-black pb-2 uppercase">
-                    <Globe className="w-5 h-5" /> SEO Metadata
-                  </h3>
-                  <div className="grid gap-6">
-                    <div>
-                      <label className="neo-title text-[10px] uppercase px-2 py-0.5 bg-[var(--neo-accent)] inline-block mb-2">Meta Title</label>
-                      <p className="text-xl neo-title mt-2">{post.meta.meta_title}</p>
-                      <p className="text-xs neo-title mt-1 text-gray-500">{post.meta.meta_title.length} chars</p>
-                    </div>
-                    <div>
-                      <label className="neo-title text-[10px] uppercase px-2 py-0.5 bg-[var(--neo-accent)] inline-block mb-2">Meta Description</label>
-                      <p className="mt-2 leading-relaxed">{post.meta.meta_description}</p>
-                      <p className="text-xs neo-title mt-1 text-gray-500">{post.meta.meta_description.length} chars</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-6">
-                      <div>
-                        <label className="neo-title text-[10px] uppercase px-2 py-0.5 bg-[var(--neo-accent)] inline-block mb-2">Primary Keyword</label>
-                        <div className="mt-2 inline-block border-2 border-black px-4 py-1 text-sm neo-title">
-                          {post.meta.primary_keyword}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="neo-title text-[10px] uppercase px-2 py-0.5 bg-[var(--neo-accent)] inline-block mb-2">URL Slug</label>
-                        <p className="neo-title text-sm mt-2 p-2 border-2 border-black text-gray-600">/{post.slug}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="neo-box p-6 bg-white">
-                  <h3 className="neo-title text-lg mb-4 flex items-center gap-2 border-b-[3px] border-black pb-2 uppercase">
-                    <ImageIcon className="w-5 h-5" /> Media Generation
-                  </h3>
-                  <div className="border-2 border-dashed border-black p-4 bg-gray-50">
-                    <label className="neo-title text-[10px] uppercase mb-2 block">Featured Image Prompt</label>
-                    <p className="italic text-gray-600">"{post.featured_image_prompt}"</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'json' && (
-              <div className="neo-box p-6 font-mono text-xs overflow-x-auto bg-black text-green-400">
-                <pre>{JSON.stringify(post, null, 2)}</pre>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

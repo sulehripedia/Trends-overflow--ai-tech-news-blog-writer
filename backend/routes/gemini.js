@@ -1,203 +1,116 @@
 import express from 'express';
-import GeminiService from '../Services/gemini.js';
+import GeminiService, { autoPilotScheduler } from '../Services/gemini.js';
+import WordPressService from '../Services/wordpress.js';
 
 const router = express.Router();
 
-/**
- * Discover trending topics
- * POST /api/gemini/discover-topics
- */
+// POST /api/gemini/discover-topics
 router.post('/discover-topics', async (req, res) => {
   try {
     const { apiKey } = req.body;
-
-    if (!apiKey) {
-      return res.status(400).json({
-        success: false,
-        message: 'Gemini API key is required'
-      });
-    }
-
-    console.log('🔍 Topic discovery request received');
+    if (!apiKey) return res.status(400).json({ success: false, message: 'API key required' });
 
     const gemini = new GeminiService(apiKey);
     const topics = await gemini.discoverTopics();
 
-    console.log(`✅ Discovered ${topics.length} topics`);
-
-    res.json({
-      success: true,
-      topics,
-      count: topics.length
-    });
-
+    res.json({ success: true, topics, count: topics.length });
   } catch (error) {
-    console.error('❌ Topic discovery error:', error.message);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to discover topics',
-      error: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+    console.error('Topic discovery error:', error.message);
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
-/**
- * Generate blog post
- * POST /api/gemini/generate-post
- */
+// POST /api/gemini/generate-post
 router.post('/generate-post', async (req, res) => {
   try {
-    const { apiKey, topicTitle, wordCount = 1200 } = req.body;
-
-    if (!apiKey) {
-      return res.status(400).json({
-        success: false,
-        message: 'Gemini API key is required'
-      });
-    }
-
-    if (!topicTitle) {
-      return res.status(400).json({
-        success: false,
-        message: 'Topic title is required'
-      });
-    }
-
-    console.log('📝 Blog generation request received');
-    console.log('Topic:', topicTitle);
-    console.log('Target words:', wordCount);
+    const { apiKey, topicTitle, wordCount = 1800 } = req.body;
+    if (!apiKey) return res.status(400).json({ success: false, message: 'API key required' });
+    if (!topicTitle) return res.status(400).json({ success: false, message: 'Topic title required' });
 
     const gemini = new GeminiService(apiKey);
     const blogPost = await gemini.generateBlogPost(topicTitle, wordCount);
 
-    console.log('✅ Blog post generated successfully');
-    console.log('Title:', blogPost.title);
-    console.log('Words:', blogPost.seo_report?.word_count_actual || 'unknown');
-
-    res.json({
-      success: true,
-      blogPost
-    });
-
+    res.json({ success: true, blogPost });
   } catch (error) {
-    console.error('❌ Blog generation error:', error.message);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to generate blog post',
-      error: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+    console.error('Blog generation error:', error.message);
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
-/**
- * Generate image (placeholder endpoint)
- * POST /api/gemini/generate-image
- */
-router.post('/generate-image', async (req, res) => {
+// POST /api/gemini/autopilot/start
+router.post('/autopilot/start', async (req, res) => {
   try {
-    const { apiKey, prompt } = req.body;
+    const { apiKey, wpUrl, wpUsername, wpPassword, publishTime = '09:00', wordCount = 1800 } = req.body;
 
-    if (!apiKey) {
-      return res.status(400).json({
-        success: false,
-        message: 'Gemini API key is required'
-      });
+    if (!apiKey || !wpUrl || !wpUsername || !wpPassword) {
+      return res.status(400).json({ success: false, message: 'API key and WordPress credentials required' });
     }
 
-    if (!prompt) {
-      return res.status(400).json({
-        success: false,
-        message: 'Image prompt is required'
-      });
-    }
+    const [hours, minutes] = publishTime.split(':');
+    const cronSchedule = `${minutes || '0'} ${hours || '9'} * * *`;
 
-    console.log('🖼️  Image generation request received');
+    autoPilotScheduler.configure({ apiKey, wpUrl, wpUsername, wpPassword, wordCount }, async () => {
+      console.log('🤖 AutoPilot daily batch starting...');
+      const gemini = new GeminiService(apiKey);
+      const wp = new WordPressService(wpUrl, wpUsername, wpPassword);
 
-    const gemini = new GeminiService(apiKey);
-    const imageResult = await gemini.generateImage(prompt);
+      // Discover topics
+      const topics = await gemini.discoverTopics();
+      const selected = topics.slice(0, 3);
 
-    res.json({
-      success: imageResult.success,
-      imageData: imageResult.placeholder_url || null,
-      message: imageResult.message
+      const results = [];
+      for (const topic of selected) {
+        try {
+          console.log(`Generating: "${topic.title}"`);
+          const blogPost = await gemini.generateBlogPost(topic.title, wordCount);
+          blogPost.createdAt = new Date().toISOString();
+
+          // Publish to WordPress
+          const publishDate = new Date();
+          publishDate.setDate(publishDate.getDate() + 1);
+          const [h, m] = publishTime.split(':');
+          publishDate.setHours(parseInt(h), parseInt(m), 0, 0);
+
+          const postData = {
+            title: blogPost.title,
+            content: blogPost.content_html,
+            status: 'future',
+            date: publishDate.toISOString(),
+            slug: blogPost.slug,
+            excerpt: blogPost.meta?.meta_description || '',
+          };
+
+          const wpResult = await wp.publishPost(blogPost, publishTime, null);
+          results.push({ topic: topic.title, postId: wpResult.postId, status: 'published' });
+          console.log(`✅ Published: "${blogPost.title}"`);
+
+          // Wait between posts
+          await new Promise(r => setTimeout(r, 5000));
+        } catch (err) {
+          console.error(`Failed to process topic "${topic.title}":`, err.message);
+          results.push({ topic: topic.title, status: 'failed', error: err.message });
+        }
+      }
+
+      console.log('🤖 AutoPilot batch complete:', results);
     });
 
+    const result = autoPilotScheduler.start(cronSchedule);
+    res.json({ success: true, ...result, schedule: cronSchedule });
   } catch (error) {
-    console.error('❌ Image generation error:', error.message);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to generate image'
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
-/**
- * Trend analysis (future endpoint)
- * POST /api/gemini/trend-analysis
- */
-router.post('/trend-analysis', async (req, res) => {
-  try {
-    const { apiKey } = req.body;
-
-    if (!apiKey) {
-      return res.status(400).json({
-        success: false,
-        message: 'Gemini API key is required'
-      });
-    }
-
-    // Placeholder for future implementation
-    res.json({
-      success: true,
-      message: 'Trend analysis coming soon',
-      trends: []
-    });
-
-  } catch (error) {
-    console.error('❌ Trend analysis error:', error.message);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to analyze trends'
-    });
-  }
+// POST /api/gemini/autopilot/stop
+router.post('/autopilot/stop', async (req, res) => {
+  autoPilotScheduler.stop();
+  res.json({ success: true, message: 'AutoPilot stopped' });
 });
 
-/**
- * Cluster topics (future endpoint)
- * POST /api/gemini/cluster-topics
- */
-router.post('/cluster-topics', async (req, res) => {
-  try {
-    const { apiKey, topics } = req.body;
-
-    if (!apiKey) {
-      return res.status(400).json({
-        success: false,
-        message: 'Gemini API key is required'
-      });
-    }
-
-    if (!topics || !Array.isArray(topics)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Topics array is required'
-      });
-    }
-
-    // Placeholder for future implementation
-    res.json({
-      success: true,
-      message: 'Topic clustering coming soon',
-      clusters: []
-    });
-
-  } catch (error) {
-    console.error('❌ Topic clustering error:', error.message);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to cluster topics'
-    });
-  }
+// GET /api/gemini/autopilot/status
+router.get('/autopilot/status', async (req, res) => {
+  res.json({ success: true, isRunning: autoPilotScheduler.isRunning() });
 });
 
 export default router;
